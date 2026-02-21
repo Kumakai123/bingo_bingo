@@ -149,7 +149,7 @@ const oddEvenDatasets = computed(() => {
   return [
     {
       data: [s.odd_count || 0, s.even_count || 0, s.tie_count || 0],
-      backgroundColor: ['#9b59b6', '#f39c12', '#bdc3c7'],
+      backgroundColor: ['#9b59b6', '#008f15', '#bdc3c7'],
       borderWidth: 0,
     },
   ];

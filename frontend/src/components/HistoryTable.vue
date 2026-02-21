@@ -35,12 +35,12 @@
               </span>
             </td>
             <td>
-              <span :class="['badge', d.high_low_result === '大' ? 'badge-primary' : 'badge-success']">
+              <span :class="['badge', d.high_low_result === '大' ? 'badge-primary' : d.high_low_result === '小' ? 'badge-success' : 'badge-tie']">
                 {{ d.high_low_result }}
               </span>
             </td>
             <td>
-              <span :class="['badge', d.odd_even_result === '單' ? 'badge-purple' : 'badge-warning']">
+              <span :class="['badge', d.odd_even_result === '單' ? 'badge-purple' : d.odd_even_result === '雙' ? 'badge-even' : 'badge-tie']">
                 {{ d.odd_even_result }}
               </span>
             </td>
@@ -110,6 +110,16 @@ const drawRows = computed(() =>
 .mini-ball.repeat {
   background: radial-gradient(circle at 30% 28%, #ff8b8b 0%, #ee3f3f 40%, #ce1e1e 72%, #a70f0f 100%);
   border-color: #d63737;
+}
+
+.badge-even {
+  background: linear-gradient(135deg, #2f84ff, #1a4fc8);
+  color: #ffffff;
+}
+
+.badge-tie {
+  background: linear-gradient(135deg, #7f8c9a, #5f6b79);
+  color: #ffffff;
 }
 
 @media (max-width: 768px) {
