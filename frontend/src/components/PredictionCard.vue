@@ -23,7 +23,7 @@
           {{ n.number }}
         </span>
       </div>
-      <p class="card-sub" v-if="numbers.length">Top 5 推薦號碼</p>
+      <p class="card-sub" v-if="numbers.length">{{ numbersLabel }}</p>
       <p class="card-sub empty" v-else>暫無資料</p>
     </template>
 
@@ -57,6 +57,7 @@ defineProps({
   type: String,
   link: String,
   numbers: { type: Array, default: () => [] },
+  numbersLabel: { type: String, default: 'Top 5 推薦號碼' },
   prediction: { type: Object, default: null },
   loading: Boolean,
 });

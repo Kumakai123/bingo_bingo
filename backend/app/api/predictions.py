@@ -13,7 +13,7 @@ router = APIRouter()
 
 @router.get("/basic")
 def get_basic_prediction(
-    period_range: int = Query(30, ge=10, le=200),
+    period_range: int = Query(30, ge=5, le=500),
     top_n: int = Query(10, ge=5, le=20),
     use_weighted: bool = Query(True),
     db: Session = Depends(get_db),
@@ -32,7 +32,7 @@ def get_basic_prediction(
 
 @router.get("/basic/batch")
 def get_basic_batch(
-    period_ranges: List[int] = Query([10, 20, 30, 50, 100]),
+    period_ranges: List[int] = Query([5, 10, 20, 30, 50, 100]),
     top_n: int = Query(10, ge=5, le=20),
     use_weighted: bool = Query(True),
     db: Session = Depends(get_db),
@@ -53,7 +53,7 @@ def get_basic_batch(
 
 @router.get("/super-number")
 def get_super_prediction(
-    period_range: int = Query(30, ge=10, le=200),
+    period_range: int = Query(30, ge=5, le=500),
     top_n: int = Query(10, ge=5, le=20),
     db: Session = Depends(get_db),
 ):
@@ -70,7 +70,7 @@ def get_super_prediction(
 
 @router.get("/high-low")
 def get_high_low_prediction(
-    period_range: int = Query(30, ge=10, le=200),
+    period_range: int = Query(30, ge=5, le=500),
     db: Session = Depends(get_db),
 ):
     return HighLowAnalyzer(db).analyze(period_range)
@@ -78,7 +78,7 @@ def get_high_low_prediction(
 
 @router.get("/odd-even")
 def get_odd_even_prediction(
-    period_range: int = Query(30, ge=10, le=200),
+    period_range: int = Query(30, ge=5, le=500),
     db: Session = Depends(get_db),
 ):
     return OddEvenAnalyzer(db).analyze(period_range)
@@ -86,7 +86,7 @@ def get_odd_even_prediction(
 
 @router.get("/all")
 def get_all_predictions(
-    period_range: int = Query(30, ge=10, le=200),
+    period_range: int = Query(30, ge=5, le=500),
     db: Session = Depends(get_db),
 ):
     return {

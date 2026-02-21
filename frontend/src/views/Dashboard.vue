@@ -18,6 +18,7 @@
           type="basic"
           link="/basic"
           :numbers="basicTop5"
+          :numbers-label="basicNumbersLabel"
           :loading="store.loading"
         />
         <PredictionCard
@@ -61,12 +62,14 @@ import HistoryTable from '../components/HistoryTable.vue';
 
 const store = usePredictionStore();
 
+const basicNumbersLabel = computed(() => `近 ${store.periodRange} 期分析號碼`);
+
 const basicTop5 = computed(() => {
-  if (!store.basic?.predictions) return [];
-  return store.basic.predictions.slice(0, 5).map(([num, score], i) => ({
-    number: num,
-    score,
-    rank: i + 1,
+  if (!store.dashboardBasic?.predictions) return [];
+  return store.dashboardBasic.predictions.slice(0, 5).map((item, i) => ({
+    number: item.number,
+    score: item.score,
+    rank: item.rank ?? i + 1,
   }));
 });
 

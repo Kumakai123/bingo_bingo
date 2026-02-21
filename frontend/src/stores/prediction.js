@@ -4,8 +4,9 @@ import api from '../services/api.js';
 
 export const usePredictionStore = defineStore('prediction', () => {
     // State
-    const periodRange = ref(30);
+    const periodRange = ref(5);
     const basic = ref(null);
+    const dashboardBasic = ref(null);
     const superNumber = ref(null);
     const highLow = ref(null);
     const oddEven = ref(null);
@@ -24,12 +25,14 @@ export const usePredictionStore = defineStore('prediction', () => {
         loading.value = true;
         error.value = null;
         try {
-            const [predRes, drawsRes] = await Promise.all([
+            const [predRes, drawsRes, dashboardBasicRes] = await Promise.all([
                 api.getAllPredictions(periodRange.value),
                 api.getLatestDraws(10),
+                api.getBasicPrediction(periodRange.value, 5),
             ]);
             const data = predRes.data;
             basic.value = data.basic;
+            dashboardBasic.value = dashboardBasicRes.data;
             superNumber.value = data.super_number;
             highLow.value = data.high_low;
             oddEven.value = data.odd_even;
@@ -43,7 +46,9 @@ export const usePredictionStore = defineStore('prediction', () => {
     }
 
     function setPeriodRange(range) {
-        periodRange.value = range;
+        const parsed = Number(range);
+        if (!Number.isFinite(parsed) || parsed < 5) return;
+        periodRange.value = parsed;
         fetchAll();
     }
 
@@ -98,6 +103,7 @@ export const usePredictionStore = defineStore('prediction', () => {
     return {
         periodRange,
         basic,
+        dashboardBasic,
         superNumber,
         highLow,
         oddEven,

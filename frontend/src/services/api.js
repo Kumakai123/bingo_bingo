@@ -18,27 +18,27 @@ export default {
     },
 
     // 預測
-    getAllPredictions(periodRange = 30) {
+    getAllPredictions(periodRange = 5) {
         return api.get('/predictions/all', { params: { period_range: periodRange } });
     },
 
-    getBasicPrediction(periodRange = 30, topN = 10) {
+    getBasicPrediction(periodRange = 5, topN = 10) {
         return api.get('/predictions/basic', { params: { period_range: periodRange, top_n: topN } });
     },
 
-    getBasicBatch(periodRanges = [10, 20, 30, 50, 100]) {
+    getBasicBatch(periodRanges = [5, 10, 20, 30, 50, 100]) {
         return api.get('/predictions/basic/batch', { params: { period_ranges: periodRanges } });
     },
 
-    getSuperNumber(periodRange = 30, topN = 10) {
+    getSuperNumber(periodRange = 5, topN = 10) {
         return api.get('/predictions/super-number', { params: { period_range: periodRange, top_n: topN } });
     },
 
-    getHighLow(periodRange = 30) {
+    getHighLow(periodRange = 5) {
         return api.get('/predictions/high-low', { params: { period_range: periodRange } });
     },
 
-    getOddEven(periodRange = 30) {
+    getOddEven(periodRange = 5) {
         return api.get('/predictions/odd-even', { params: { period_range: periodRange } });
     },
 
