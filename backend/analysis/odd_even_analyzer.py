@@ -1,4 +1,4 @@
-from typing import Dict, List
+﻿from typing import Dict, List
 from sqlalchemy.orm import Session
 
 from app.models.draw_result import DrawResult
@@ -13,7 +13,7 @@ class OddEvenAnalyzer:
     def analyze(self, period_range: int = 30) -> Dict:
         draws = (
             self.db.query(DrawResult)
-            .order_by(DrawResult.draw_datetime.desc())
+            .order_by(DrawResult.draw_term.desc())
             .limit(period_range)
             .all()
         )
@@ -85,3 +85,4 @@ class OddEvenAnalyzer:
                 }
         result = "單" if odd_n >= even_n else "雙"
         return {"result": result, "confidence": 0.52, "reason": "根據歷史多數"}
+

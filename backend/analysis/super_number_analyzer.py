@@ -1,4 +1,4 @@
-from collections import Counter
+﻿from collections import Counter
 from typing import Dict
 from sqlalchemy.orm import Session
 
@@ -14,7 +14,7 @@ class SuperNumberAnalyzer:
     def analyze(self, period_range: int = 30, top_n: int = 10) -> Dict:
         draws = (
             self.db.query(DrawResult)
-            .order_by(DrawResult.draw_datetime.desc())
+            .order_by(DrawResult.draw_term.desc())
             .limit(period_range)
             .all()
         )
@@ -37,3 +37,4 @@ class SuperNumberAnalyzer:
             "all_stats": all_stats,
             "period_range": len(draws),
         }
+

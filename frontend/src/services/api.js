@@ -46,4 +46,8 @@ export default {
     getLastUpdated() {
         return api.get('/status/last-updated');
     },
+
+    triggerRefresh() {
+        return api.post('/status/refresh');
+    },
 };

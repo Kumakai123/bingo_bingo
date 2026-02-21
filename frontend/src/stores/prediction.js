@@ -11,6 +11,7 @@ export const usePredictionStore = defineStore('prediction', () => {
     const oddEven = ref(null);
     const latestDraws = ref([]);
     const loading = ref(false);
+    const refreshing = ref(false);
     const error = ref(null);
     const lastUpdated = ref(null);
 
@@ -44,6 +45,27 @@ export const usePredictionStore = defineStore('prediction', () => {
     function setPeriodRange(range) {
         periodRange.value = range;
         fetchAll();
+    }
+
+    async function manualRefresh() {
+        refreshing.value = true;
+        error.value = null;
+        try {
+            const res = await api.triggerRefresh();
+            const serverTs = res?.data?.last_updated;
+            if (serverTs) {
+                knownTimestamp = serverTs;
+                lastUpdated.value = serverTs;
+            }
+            await fetchAll();
+            return res?.data;
+        } catch (e) {
+            error.value = e.message;
+            console.error('manualRefresh failed:', e);
+            throw e;
+        } finally {
+            refreshing.value = false;
+        }
     }
 
     // Polling: every 30s check /api/status/last-updated
@@ -81,9 +103,11 @@ export const usePredictionStore = defineStore('prediction', () => {
         oddEven,
         latestDraws,
         loading,
+        refreshing,
         error,
         lastUpdated,
         fetchAll,
+        manualRefresh,
         setPeriodRange,
         startPolling,
         stopPolling,

@@ -1,4 +1,4 @@
-from collections import Counter
+﻿from collections import Counter
 from typing import Dict, List
 from sqlalchemy.orm import Session
 
@@ -76,7 +76,7 @@ class BasicAnalyzer:
     def _fetch_draws(self, limit: int):
         return (
             self.db.query(DrawResult)
-            .order_by(DrawResult.draw_datetime.desc())
+            .order_by(DrawResult.draw_term.desc())
             .limit(limit)
             .all()
         )
@@ -104,3 +104,4 @@ class BasicAnalyzer:
             "period_range": 0,
             "method": "none",
         }
+

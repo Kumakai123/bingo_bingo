@@ -1,4 +1,4 @@
-from typing import Dict, List
+﻿from typing import Dict, List
 from sqlalchemy.orm import Session
 
 from app.models.draw_result import DrawResult
@@ -13,7 +13,7 @@ class HighLowAnalyzer:
     def analyze(self, period_range: int = 30) -> Dict:
         draws = (
             self.db.query(DrawResult)
-            .order_by(DrawResult.draw_datetime.desc())
+            .order_by(DrawResult.draw_term.desc())
             .limit(period_range)
             .all()
         )
@@ -98,3 +98,4 @@ class HighLowAnalyzer:
             "confidence": 0.52,
             "reason": "根據歷史多數",
         }
+

@@ -16,11 +16,15 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="d in draws" :key="d.draw_term">
+          <tr v-for="d in drawRows" :key="d.draw_term">
             <td class="mono">{{ d.draw_term }}</td>
             <td>
               <div class="draw-numbers">
-                <span v-for="n in d.numbers_sorted" :key="n" class="mini-ball">
+                <span
+                  v-for="n in d.numbers_sorted"
+                  :key="n"
+                  :class="['mini-ball', d.repeatSet.has(n) ? 'repeat' : 'normal']"
+                >
                   {{ n }}
                 </span>
               </div>
@@ -48,9 +52,19 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue';
+
+const props = defineProps({
   draws: { type: Array, default: () => [] },
 });
+
+const drawRows = computed(() =>
+  props.draws.map((draw, idx) => {
+    const previousDraw = props.draws[idx + 1];
+    const repeatSet = new Set(previousDraw?.numbers_sorted || []);
+    return { ...draw, repeatSet };
+  })
+);
 </script>
 
 <style scoped>
@@ -74,12 +88,35 @@ defineProps({
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  font-size: 0.7rem;
-  font-weight: 500;
+  border: 1px solid;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  box-shadow:
+    inset 0 2px 5px rgba(255, 255, 255, 0.35),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.mini-ball.normal {
+  background: radial-gradient(circle at 30% 28%, #7e8dff 0%, #2f45e8 38%, #0a1cb6 72%, #06128c 100%);
+  border-color: #2942e0;
+}
+
+.mini-ball.repeat {
+  background: radial-gradient(circle at 30% 28%, #ff8b8b 0%, #ee3f3f 40%, #ce1e1e 72%, #a70f0f 100%);
+  border-color: #d63737;
+}
+
+@media (max-width: 768px) {
+  .mini-ball {
+    width: 36px;
+    height: 36px;
+    font-size: 17px;
+  }
 }
 </style>

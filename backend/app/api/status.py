@@ -1,6 +1,9 @@
 from datetime import datetime
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from app.database import get_db
 
 router = APIRouter()
 
@@ -21,3 +24,16 @@ def get_last_updated() -> datetime | None:
 @router.get("/last-updated")
 def last_updated():
     return {"last_updated": _last_updated}
+
+
+@router.post("/refresh")
+def refresh_now(db: Session = Depends(get_db)):
+    """
+    Manually trigger crawler immediately, then update timestamp.
+    Frontend manual-refresh button can call this endpoint.
+    """
+    from crawler.bingo_crawler import BingoCrawler
+
+    stats = BingoCrawler(db).run()
+    set_last_updated()
+    return {"ok": True, "stats": stats, "last_updated": _last_updated}

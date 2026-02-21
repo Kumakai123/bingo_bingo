@@ -43,7 +43,8 @@ def _seed_draws(db, count=5, high_low_pattern=None, odd_even_pattern=None,
         sn = super_numbers[i] if super_numbers else "44"
         _make_draw(
             db,
-            draw_term=f"11500{i:04d}",
+            # Keep i=0 as "latest" even when queries sort by draw_term DESC
+            draw_term=f"11500{9999 - i:04d}",
             numbers_sorted="01,02,03,04,05,41,42,43,44,45,06,07,08,09,10,46,47,48,49,50",
             super_number=sn,
             high_low=hl,

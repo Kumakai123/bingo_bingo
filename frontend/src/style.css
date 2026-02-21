@@ -2,21 +2,22 @@
 
 /* ─── Design Tokens ──────────────────────────────── */
 :root {
-  /* Flat Design Color Palette */
-  --primary: #3498db;
-  --primary-dark: #2980b9;
-  --secondary: #2ecc71;
-  --accent: #e74c3c;
-  --warning: #f39c12;
-  --purple: #9b59b6;
+  /* Refined Dark Palette */
+  --primary: #58a6ff;
+  --primary-dark: #3d8fe7;
+  --secondary: #30c48d;
+  --accent: #ff6b81;
+  --warning: #f7b955;
+  --purple: #a78bfa;
 
   /* Neutrals */
-  --bg: #f5f6fa;
-  --surface: #ffffff;
-  --text: #2c3e50;
-  --text-secondary: #7f8c8d;
-  --border: #ecf0f1;
-  --divider: #bdc3c7;
+  --bg: #0b1118;
+  --surface: #151f2c;
+  --surface-soft: #1a2736;
+  --text: #e6edf7;
+  --text-secondary: #9fb1c8;
+  --border: #243447;
+  --divider: #2f4359;
 
   /* Cards */
   --card-radius: 12px;
@@ -48,7 +49,10 @@
 
 body {
   font-family: var(--font-main);
-  background: var(--bg);
+  background:
+    radial-gradient(1200px 500px at 20% -20%, #1f3045 0%, transparent 60%),
+    radial-gradient(900px 400px at 100% 0%, #172638 0%, transparent 55%),
+    var(--bg);
   color: var(--text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -71,8 +75,9 @@ body {
 
 /* ─── Navbar ─────────────────────────────────────── */
 .navbar {
-  background: var(--surface);
-  border-bottom: 3px solid var(--primary);
+  background: rgba(12, 19, 28, 0.92);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(10px);
   padding: 0 var(--gap-lg);
   display: flex;
   align-items: center;
@@ -103,6 +108,12 @@ body {
   list-style: none;
 }
 
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-md);
+}
+
 .navbar-links a {
   text-decoration: none;
   color: var(--text-secondary);
@@ -114,26 +125,51 @@ body {
 }
 
 .navbar-links a:hover {
-  background: var(--bg);
-  color: var(--text);
+  background: #1d2a3a;
+  color: #f6fbff;
 }
 
 .navbar-links a.router-link-active {
-  background: var(--primary);
-  color: #fff;
+  background: linear-gradient(135deg, var(--primary), #7ac2ff);
+  color: #08121d;
+}
+
+.refresh-btn {
+  border: 1px solid #2d4761;
+  background: linear-gradient(135deg, #15324d, #1f4061);
+  color: #dbe9fb;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-family: var(--font-main);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.refresh-btn:hover {
+  border-color: #3f6386;
+  transform: translateY(-1px);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* ─── Card ───────────────────────────────────────── */
 .card {
-  background: var(--surface);
+  background: linear-gradient(180deg, var(--surface) 0%, var(--surface-soft) 100%);
   border-radius: var(--card-radius);
   padding: var(--card-padding);
-  border: 2px solid var(--border);
-  transition: border-color var(--transition);
+  border: 1px solid var(--border);
+  transition: border-color var(--transition), transform var(--transition);
 }
 
 .card:hover {
   border-color: var(--primary);
+  transform: translateY(-1px);
 }
 
 .card-header {
@@ -210,7 +246,7 @@ body {
   height: 40px;
   border-radius: 50%;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 14px;
   border: 2px solid;
 }
 
@@ -233,9 +269,9 @@ body {
 }
 
 .number-ball.default {
-  background: #dfe6e9;
-  border-color: #b2bec3;
-  color: var(--text);
+  background: #223243;
+  border-color: #334a63;
+  color: #dce8f7;
 }
 
 .number-ball.super {
@@ -258,7 +294,7 @@ body {
 }
 
 .data-table th {
-  background: var(--bg);
+  background: #111a26;
   padding: 12px var(--gap-md);
   text-align: left;
   font-weight: 600;
@@ -272,7 +308,7 @@ body {
 }
 
 .data-table tbody tr:hover {
-  background: #f8f9ff;
+  background: #1a2534;
 }
 
 /* ─── Section Header ─────────────────────────────── */
@@ -340,9 +376,17 @@ body {
     padding: var(--gap-md);
     gap: var(--gap-sm);
   }
+  .navbar-right {
+    width: 100%;
+    flex-direction: column;
+    gap: var(--gap-sm);
+  }
   .navbar-links {
     flex-wrap: wrap;
     justify-content: center;
+  }
+  .refresh-btn {
+    width: 100%;
   }
   .main-content {
     padding: var(--gap-md);

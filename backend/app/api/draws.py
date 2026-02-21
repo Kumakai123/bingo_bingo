@@ -15,7 +15,7 @@ def get_latest_draws(
     """取得最新開獎紀錄"""
     draws = (
         db.query(DrawResult)
-        .order_by(DrawResult.draw_datetime.desc())
+        .order_by(DrawResult.draw_term.desc())
         .limit(limit)
         .all()
     )
