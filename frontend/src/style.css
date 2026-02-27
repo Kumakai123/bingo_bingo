@@ -196,9 +196,21 @@ body {
   gap: var(--gap-lg);
 }
 
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap-lg);
+}
+
 .grid-4 {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  gap: var(--gap-lg);
+}
+
+.grid-5 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
   gap: var(--gap-lg);
 }
 
@@ -235,6 +247,63 @@ body {
 .badge-purple {
   background: var(--purple);
   color: #fff;
+}
+
+.badge-hot {
+  background: linear-gradient(135deg, #e74c3c, #ff6b81);
+  color: #fff;
+}
+
+.badge-cold {
+  background: linear-gradient(135deg, #3498db, #58a6ff);
+  color: #fff;
+}
+
+.badge-normal {
+  background: var(--surface-soft);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+/* ─── Tags (small inline labels) ────────────────── */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tag-consecutive {
+  background: rgba(255, 107, 129, 0.15);
+  color: var(--accent);
+  border: 1px solid rgba(255, 107, 129, 0.3);
+}
+
+.tag-cooccur {
+  background: rgba(88, 166, 255, 0.15);
+  color: var(--primary);
+  border: 1px solid rgba(88, 166, 255, 0.3);
+}
+
+.tag-tail {
+  background: rgba(167, 139, 250, 0.15);
+  color: var(--purple);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
+
+.tag-cold {
+  background: rgba(48, 196, 141, 0.15);
+  color: var(--secondary);
+  border: 1px solid rgba(48, 196, 141, 0.3);
+}
+
+.tag-zone {
+  background: rgba(247, 185, 85, 0.15);
+  color: var(--warning);
+  border: 1px solid rgba(247, 185, 85, 0.3);
 }
 
 /* ─── Prediction Numbers ─────────────────────────── */
@@ -364,7 +433,13 @@ body {
 
 /* ─── Responsive ─────────────────────────────────── */
 @media (max-width: 768px) {
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
   .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .grid-5 {
     grid-template-columns: repeat(2, 1fr);
   }
   .grid-2 {
@@ -395,6 +470,9 @@ body {
 
 @media (max-width: 480px) {
   .grid-4 {
+    grid-template-columns: 1fr;
+  }
+  .grid-5 {
     grid-template-columns: 1fr;
   }
 }

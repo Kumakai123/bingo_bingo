@@ -77,15 +77,17 @@ class TestBasicAnalyzer:
         assert result["predictions"][0][1] == 3
 
     def test_weighted_higher_for_recent(self, db_session):
-        # Insert 2 draws: draw 0 is recent (weight 3.0), draw 1 is older
+        # draw_term "115000002" sorts higher → idx=0 (recent), "115000001" → idx=1
         _make_draw(db_session, "115000001", "01,02,03,04,05,06,07,08,09,10,41,42,43,44,45,46,47,48,49,50",
                    dt_offset=0)
         _make_draw(db_session, "115000002", "01,02,03,04,05,06,07,08,09,10,41,42,43,44,45,46,47,48,49,50",
                    dt_offset=1)
         result = BasicAnalyzer(db_session).analyze(10, top_n=5, use_weighted=True)
         assert result["method"] == "weighted"
-        # Both within top-10 range so weight=3.0 each → score = 6.0
-        assert result["predictions"][0][1] == 6.0
+        # Exponential decay: e^(-0.05*0) + e^(-0.05*1) ≈ 1.0 + 0.9512 = 1.9512
+        import math
+        expected = math.exp(0) + math.exp(-0.05)
+        assert abs(result["predictions"][0][1] - expected) < 0.01
 
     def test_all_stats_has_80_entries(self, db_session):
         _seed_draws(db_session, count=1)

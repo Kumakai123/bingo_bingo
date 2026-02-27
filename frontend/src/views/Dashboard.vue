@@ -10,8 +10,17 @@
     </div>
 
     <template v-else>
-      <!-- 四張快速預覽卡片 -->
-      <div class="grid-4 mb">
+      <!-- 五張快速預覽卡片 -->
+      <div class="grid-5 mb">
+        <PredictionCard
+          title="智慧選號"
+          icon="🧠"
+          type="basic"
+          link="/smart-pick"
+          :numbers="smartPickTop3"
+          numbers-label="綜合推薦 Top 3"
+          :loading="smartPickLoading"
+        />
         <PredictionCard
           title="基本玩法"
           icon="🔢"
@@ -54,13 +63,14 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, onMounted, watch } from 'vue';
 import { usePredictionStore } from '../stores/prediction.js';
 import PeriodSelector from '../components/PeriodSelector.vue';
 import PredictionCard from '../components/PredictionCard.vue';
 import HistoryTable from '../components/HistoryTable.vue';
 
 const store = usePredictionStore();
+const smartPickLoading = ref(false);
 
 const basicNumbersLabel = computed(() => `近 ${store.periodRange} 期分析號碼`);
 
@@ -80,6 +90,34 @@ const superTop5 = computed(() => {
     score: freq,
     rank: i + 1,
   }));
+});
+
+const smartPickTop3 = computed(() => {
+  if (!store.smartPick?.picks) return [];
+  return store.smartPick.picks.slice(0, 3).map((p, i) => ({
+    number: p.number,
+    score: p.final_score,
+    rank: i + 1,
+  }));
+});
+
+async function loadSmartPick() {
+  smartPickLoading.value = true;
+  try {
+    await store.fetchSmartPick(10, 3);
+  } catch {
+    // silent
+  } finally {
+    smartPickLoading.value = false;
+  }
+}
+
+watch(() => store.periodRange, () => {
+  loadSmartPick();
+});
+
+onMounted(() => {
+  loadSmartPick();
 });
 </script>
 

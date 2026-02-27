@@ -5,6 +5,8 @@ const routes = [
     { path: '/basic', name: 'BasicAnalysis', component: () => import('../views/BasicAnalysis.vue') },
     { path: '/super', name: 'SuperNumber', component: () => import('../views/SuperNumber.vue') },
     { path: '/trend', name: 'HighLowOddEven', component: () => import('../views/HighLowOddEven.vue') },
+    { path: '/smart-pick', name: 'SmartPick', component: () => import('../views/SmartPick.vue') },
+    { path: '/advanced', name: 'AdvancedAnalysis', component: () => import('../views/AdvancedAnalysis.vue') },
 ];
 
 const router = createRouter({

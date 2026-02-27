@@ -10,6 +10,12 @@ export const usePredictionStore = defineStore('prediction', () => {
     const superNumber = ref(null);
     const highLow = ref(null);
     const oddEven = ref(null);
+    const coOccurrence = ref(null);
+    const tailNumber = ref(null);
+    const zoneDistribution = ref(null);
+    const coldHotCycle = ref(null);
+    const consecutive = ref(null);
+    const smartPick = ref(null);
     const latestDraws = ref([]);
     const loading = ref(false);
     const refreshing = ref(false);
@@ -36,12 +42,28 @@ export const usePredictionStore = defineStore('prediction', () => {
             superNumber.value = data.super_number;
             highLow.value = data.high_low;
             oddEven.value = data.odd_even;
+            coOccurrence.value = data.co_occurrence || null;
+            tailNumber.value = data.tail_number || null;
+            zoneDistribution.value = data.zone_distribution || null;
+            coldHotCycle.value = data.cold_hot_cycle || null;
+            consecutive.value = data.consecutive || null;
             latestDraws.value = drawsRes.data;
         } catch (e) {
             error.value = e.message;
             console.error('fetchAll failed:', e);
         } finally {
             loading.value = false;
+        }
+    }
+
+    async function fetchSmartPick(pickCount = 10, starLevel = 3) {
+        try {
+            const res = await api.getSmartPick(periodRange.value, pickCount, starLevel);
+            smartPick.value = res.data;
+            return res.data;
+        } catch (e) {
+            console.error('fetchSmartPick failed:', e);
+            throw e;
         }
     }
 
@@ -107,12 +129,19 @@ export const usePredictionStore = defineStore('prediction', () => {
         superNumber,
         highLow,
         oddEven,
+        coOccurrence,
+        tailNumber,
+        zoneDistribution,
+        coldHotCycle,
+        consecutive,
+        smartPick,
         latestDraws,
         loading,
         refreshing,
         error,
         lastUpdated,
         fetchAll,
+        fetchSmartPick,
         manualRefresh,
         setPeriodRange,
         startPolling,
