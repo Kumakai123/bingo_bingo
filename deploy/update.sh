@@ -20,6 +20,7 @@ echo "── Rebuilding frontend..."
 cd "$APP_DIR/frontend"
 npm install --silent
 npm run build
+chmod -R 755 /home/ubuntu/bingo_bingo/frontend/dist 2>/dev/null || true
 
 echo "── Reloading Nginx..."
 sudo nginx -t && sudo systemctl reload nginx

@@ -67,6 +67,8 @@ npm install
 
 echo "VITE_API_BASE_URL=https://$DOMAIN" > .env.production
 npm run build
+chmod 755 "$FRONTEND_DIR/dist" 2>/dev/null || true
+chmod -R 755 "$FRONTEND_DIR/dist" 2>/dev/null || true
 echo "  → Frontend built to dist/"
 
 # ── 5. Nginx config ────────────────────────────
