@@ -241,4 +241,16 @@ const oddEvenDatasets = computed(() => {
 .chart-section {
   margin-top: var(--gap-md);
 }
+
+@media (max-width: 768px) {
+  .prediction-value {
+    font-size: 2.2rem;
+  }
+  .stat-val {
+    font-size: 1.4rem;
+  }
+  .stats-row {
+    gap: var(--gap-lg);
+  }
+}
 </style>

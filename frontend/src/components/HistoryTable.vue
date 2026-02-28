@@ -163,9 +163,24 @@ function formatTime(dt) {
 
 @media (max-width: 768px) {
   .mini-ball {
-    width: 36px;
-    height: 36px;
-    font-size: 17px;
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .draw-numbers {
+    max-width: 280px;
+    gap: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mini-ball {
+    width: 26px;
+    height: 26px;
+    font-size: 11px;
+  }
+  .draw-numbers {
+    max-width: 220px;
   }
 }
 </style>

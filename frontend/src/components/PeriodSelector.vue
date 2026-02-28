@@ -171,4 +171,23 @@ function applyCustom() {
   font-size: 0.82rem;
   align-self: center;
 }
+
+@media (max-width: 768px) {
+  .period-selector {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--gap-sm);
+  }
+  .period-options {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .period-btn {
+    padding: 5px 12px;
+    font-size: 0.82rem;
+  }
+  .period-label {
+    font-size: 0.85rem;
+  }
+}
 </style>
