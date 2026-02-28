@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     CRAWLER_INTERVAL_MINUTES: int = 6
     CRAWLER_RELAX_TLS_STRICT: bool = False
     ENV: str = "development"
+    BINGO_FIRST_DRAW_HOUR: int = 7
+    BINGO_FIRST_DRAW_MINUTE: int = 5
 
     model_config = {"env_file": ".env"}
 

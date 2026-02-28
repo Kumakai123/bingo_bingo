@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 from unittest.mock import patch, MagicMock
 import pytest
 
@@ -71,68 +71,79 @@ class TestValidate:
 
 
 class TestParseDraw:
+    QUERY_DATE = date(2026, 2, 28)
+    FIRST_TERM = 115009500
+
     def setup_method(self):
         self.crawler = BingoCrawler(db_session=MagicMock())
 
+    def _parse(self, data=None):
+        return self.crawler._parse_draw_data(
+            data or VALID_DRAW, self.QUERY_DATE, self.FIRST_TERM
+        )
+
     def test_parse_basic_fields(self):
-        result = self.crawler._parse_draw_data(VALID_DRAW)
+        result = self._parse()
         assert result["draw_term"] == "115009534"
         assert result["super_number"] == "44"
         assert result["numbers_sorted"] == ",".join(VALID_DRAW["bigShowOrder"])
         assert result["numbers_sequence"] == ",".join(VALID_DRAW["openShowOrder"])
 
     def test_parse_high_low_counts(self):
-        result = self.crawler._parse_draw_data(VALID_DRAW)
-        # numbers 41-80: 41,42,43,44,47,48,59,60,64,68,74 = 11
-        # numbers 01-40: 11,19,22,24,30,33,34,36,39 = 9
+        result = self._parse()
         assert result["high_count"] + result["low_count"] == 20
         assert result["high_count"] == 11
         assert result["low_count"] == 9
 
     def test_parse_odd_even_counts(self):
-        result = self.crawler._parse_draw_data(VALID_DRAW)
+        result = self._parse()
         assert result["odd_count"] + result["even_count"] == 20
-        # odd: 11,19,33,39,41,43,47,59 = 8? let's count
-        # 11✓ 19✓ 22✗ 24✗ 30✗ 33✓ 34✗ 36✗ 39✓ 41✓ 42✗ 43✓ 44✗ 47✓ 48✗ 59✓ 60✗ 64✗ 68✗ 74✗
-        # odd = 8, even = 12
         assert result["odd_count"] == 8
         assert result["even_count"] == 12
 
     def test_parse_high_low_result(self):
-        result = self.crawler._parse_draw_data(VALID_DRAW)
+        result = self._parse()
         assert result["high_low_result"] == "大"
 
     def test_parse_odd_even_result(self):
-        result = self.crawler._parse_draw_data(VALID_DRAW)
+        result = self._parse()
         assert result["odd_even_result"] == "單"
 
-    def test_parse_draw_date(self):
-        result = self.crawler._parse_draw_data(VALID_DRAW)
-        # 115 = 民國 115 -> 2026, day 009 -> Jan 9
-        assert result["draw_date"] == date(2026, 1, 9)
+    def test_parse_draw_date_uses_query_date(self):
+        result = self._parse()
+        assert result["draw_date"] == self.QUERY_DATE
+
+    def test_parse_draw_datetime_calculated(self):
+        result = self._parse()
+        # position = 115009534 - 115009500 = 34
+        # draw_time = 07:05 + 34*5min = 07:05 + 170min = 09:55
+        assert result["draw_datetime"] == datetime(2026, 2, 28, 9, 55)
 
 
 # ─── Save Tests ──────────────────────────────────────────────
 
 
 class TestParseAndSave:
+    QUERY_DATE = date(2026, 2, 28)
+    FIRST_TERM = 115009500
+
     def test_insert_new(self, db_session):
         crawler = BingoCrawler(db_session=db_session)
-        result = crawler.parse_and_save(VALID_DRAW)
+        result = crawler.parse_and_save(VALID_DRAW, self.QUERY_DATE, self.FIRST_TERM)
         assert result == "inserted"
         assert db_session.query(DrawResult).count() == 1
 
     def test_skip_duplicate(self, db_session):
         crawler = BingoCrawler(db_session=db_session)
-        crawler.parse_and_save(VALID_DRAW)
-        result = crawler.parse_and_save(VALID_DRAW)
+        crawler.parse_and_save(VALID_DRAW, self.QUERY_DATE, self.FIRST_TERM)
+        result = crawler.parse_and_save(VALID_DRAW, self.QUERY_DATE, self.FIRST_TERM)
         assert result == "skipped"
         assert db_session.query(DrawResult).count() == 1
 
     def test_fail_invalid(self, db_session):
         crawler = BingoCrawler(db_session=db_session)
         bad_data = {**VALID_DRAW, "openShowOrder": ["01"] * 19}
-        result = crawler.parse_and_save(bad_data)
+        result = crawler.parse_and_save(bad_data, self.QUERY_DATE, self.FIRST_TERM)
         assert result == "failed"
         assert db_session.query(DrawResult).count() == 0
 
@@ -146,7 +157,10 @@ class TestFetchLatestDraws:
         mock_resp = MagicMock()
         mock_resp.json.return_value = {
             "rtCode": 0,
-            "content": {"bingoQueryResult": [VALID_DRAW]},
+            "content": {
+                "bingoQueryResult": [VALID_DRAW],
+                "totalSize": 1,
+            },
         }
         mock_resp.raise_for_status = MagicMock()
 
@@ -158,7 +172,9 @@ class TestFetchLatestDraws:
         results = crawler.fetch_latest_draws()
 
         assert len(results) >= 1
-        assert results[0]["drawTerm"] == 115009534
+        assert results[0]["data"]["drawTerm"] == 115009534
+        assert results[0]["query_date"] is not None
+        assert results[0]["first_term"] == 115009534
 
     @patch("crawler.bingo_crawler.requests.Session")
     def test_fetch_handles_api_error(self, MockSession):

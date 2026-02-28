@@ -12,6 +12,7 @@
           <li><router-link to="/super">超級號碼</router-link></li>
           <li><router-link to="/trend">大小單雙</router-link></li>
           <li><router-link to="/advanced">進階分析</router-link></li>
+          <li><router-link to="/simulation">投注紀錄</router-link></li>
         </ul>
         <button class="refresh-btn" :disabled="store.loading || store.refreshing" @click="handleManualRefresh">
           <span>{{ store.refreshing ? '抓新資料中...' : (store.loading ? '更新中...' : '手動刷新') }}</span>
@@ -21,12 +22,14 @@
     <main class="main-content">
       <router-view />
     </main>
+    <BetWidget />
   </div>
 </template>
 
 <script setup>
 import { onMounted, onUnmounted } from 'vue';
 import { usePredictionStore } from './stores/prediction.js';
+import BetWidget from './components/BetWidget.vue';
 
 const store = usePredictionStore();
 

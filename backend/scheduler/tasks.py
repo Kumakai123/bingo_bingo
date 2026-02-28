@@ -32,6 +32,23 @@ def setup_scheduler(db_session_factory) -> BackgroundScheduler:
                 set_last_updated()
                 logger.info("已更新 last_updated 時間戳")
 
+                # Auto-settle pending simulated bets against the latest draw
+                try:
+                    from app.models.draw_result import DrawResult
+                    from analysis.bet_settler import auto_settle_all
+
+                    latest = (
+                        db.query(DrawResult)
+                        .order_by(DrawResult.draw_term.desc())
+                        .first()
+                    )
+                    if latest:
+                        settled = auto_settle_all(db, latest)
+                        if settled:
+                            logger.info("自動兌獎: %d 筆投注已結算", settled)
+                except Exception as settle_err:
+                    logger.error("自動兌獎失敗: %s", settle_err)
+
         except Exception as e:
             logger.error(f"排程爬蟲例外: {e}")
         finally:

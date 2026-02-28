@@ -77,4 +77,31 @@ export default {
     triggerRefresh() {
         return api.post('/status/refresh');
     },
+
+    // 模擬投注
+    getNextDraw() {
+        return api.get('/simulation/next-draw');
+    },
+
+    placeBet(data) {
+        return api.post('/simulation/bet', data);
+    },
+
+    getBets(status = null, limit = 50, offset = 0) {
+        const params = { limit, offset };
+        if (status) params.status = status;
+        return api.get('/simulation/bets', { params });
+    },
+
+    getBetStats() {
+        return api.get('/simulation/stats');
+    },
+
+    settleBets() {
+        return api.post('/simulation/settle');
+    },
+
+    cancelBet(betId) {
+        return api.delete(`/simulation/bet/${betId}`);
+    },
 };

@@ -95,6 +95,7 @@
               <div class="combo-balls">
                 <span v-for="n in combo" :key="n" class="number-ball default">{{ n }}</span>
               </div>
+              <button class="quick-bet-btn" @click="gotoBet(combo)">立即下注</button>
             </div>
           </div>
           <p v-if="!data.star_combos.length" class="empty-hint">尚無足夠資料產生組合</p>
@@ -109,9 +110,11 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { usePredictionStore } from '../stores/prediction.js';
+import { useSimulationStore } from '../stores/simulation.js';
 import PeriodSelector from '../components/PeriodSelector.vue';
 
 const store = usePredictionStore();
+const simStore = useSimulationStore();
 const starLevel = ref(3);
 const pickCount = ref(10);
 const loading = ref(false);
@@ -160,6 +163,14 @@ function tagClass(bonus) {
   if (bonus.includes('冷號')) return 'tag-cold';
   if (bonus.includes('區間')) return 'tag-zone';
   return 'tag-consecutive';
+}
+
+function gotoBet(combo) {
+  simStore.openWidget({
+    type: 'basic',
+    star: starLevel.value,
+    numbers: [...combo],
+  });
 }
 
 watch(() => store.periodRange, () => {
@@ -484,6 +495,28 @@ onMounted(() => {
   display: flex;
   gap: var(--gap-sm);
   flex-wrap: wrap;
+}
+
+.quick-bet-btn {
+  margin-left: auto;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--secondary);
+  background: transparent;
+  color: var(--secondary);
+  font-family: var(--font-main);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.quick-bet-btn:hover {
+  background: var(--secondary);
+  color: #08121d;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(48, 196, 141, 0.3);
 }
 
 .empty-hint {

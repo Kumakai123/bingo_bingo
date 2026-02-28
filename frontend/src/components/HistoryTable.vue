@@ -2,6 +2,7 @@
   <div class="card">
     <div class="card-header">
       <span class="card-title">📋 最近開獎紀錄</span>
+      <span class="today-date">{{ todayStr }}</span>
     </div>
     <div v-if="!draws.length" class="loading-overlay">暫無資料</div>
     <div v-else class="table-wrapper">
@@ -17,7 +18,10 @@
         </thead>
         <tbody>
           <tr v-for="d in drawRows" :key="d.draw_term">
-            <td class="mono">{{ d.draw_term }}</td>
+            <td class="term-cell">
+              <span class="mono">{{ d.draw_term }}</span>
+              <span class="draw-time">{{ formatTime(d.draw_datetime) }}</span>
+            </td>
             <td>
               <div class="draw-numbers">
                 <span
@@ -65,6 +69,22 @@ const drawRows = computed(() =>
     return { ...draw, repeatSet };
   })
 );
+
+const todayStr = (() => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const mo = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${y}/${mo}/${day}`;
+})();
+
+function formatTime(dt) {
+  if (!dt) return '';
+  const d = new Date(dt);
+  const h = String(d.getHours()).padStart(2, '0');
+  const mi = String(d.getMinutes()).padStart(2, '0');
+  return `${h}:${mi}`;
+}
 </script>
 
 <style scoped>
@@ -72,9 +92,28 @@ const drawRows = computed(() =>
   overflow-x: auto;
 }
 
+.today-date {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.term-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
 .mono {
   font-family: var(--font-mono);
   font-size: 0.85rem;
+}
+
+.draw-time {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .draw-numbers {

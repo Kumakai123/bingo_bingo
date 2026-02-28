@@ -1,6 +1,6 @@
 import requests
 import ssl
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, time, timedelta
 from typing import Dict, List, Optional
 import logging
 
@@ -68,8 +68,12 @@ class BingoCrawler:
             draw_list = self.fetch_latest_draws()
             stats["fetched"] = len(draw_list)
 
-            for draw_data in draw_list:
-                result = self.parse_and_save(draw_data)
+            for draw_entry in draw_list:
+                result = self.parse_and_save(
+                    draw_entry["data"],
+                    draw_entry["query_date"],
+                    draw_entry["first_term"],
+                )
                 if result == "inserted":
                     stats["inserted"] += 1
                 elif result == "skipped":
@@ -101,10 +105,14 @@ class BingoCrawler:
         target_date: Optional[datetime] = None,
         page_size: int = 50,
     ) -> List[Dict]:
+        """
+        回傳 list of {data, query_date, first_term}，
+        每筆 draw 附帶查詢日期及該日第一期期號，用於計算開獎時間。
+        """
         if target_date is None:
             target_date = datetime.now()
 
-        results = []
+        results: List[Dict] = []
         dates_to_check = [
             target_date.date(),
             (target_date - timedelta(days=1)).date(),
@@ -126,8 +134,17 @@ class BingoCrawler:
 
                 if data.get("rtCode") == 0:
                     draws = data["content"]["bingoQueryResult"]
-                    results.extend(draws)
-                    logger.info(f"取得 {len(draws)} 筆")
+                    total_size = data["content"].get("totalSize", len(draws))
+                    latest_term = int(draws[0]["drawTerm"]) if draws else 0
+                    first_term = latest_term - total_size + 1
+
+                    for draw in draws:
+                        results.append({
+                            "data": draw,
+                            "query_date": check_date,
+                            "first_term": first_term,
+                        })
+                    logger.info(f"取得 {len(draws)} 筆 (該日共 {total_size} 期)")
                 else:
                     logger.error(f"API 錯誤: {data.get('rtMsg')}")
 
@@ -175,21 +192,28 @@ class BingoCrawler:
 
     # ─── Parse ────────────────────────────────────────────
 
-    def _parse_draw_data(self, data: Dict) -> Dict:
+    def _parse_draw_data(
+        self,
+        data: Dict,
+        query_date: date,
+        first_term_of_day: int,
+    ) -> Dict:
         draw_term = str(data["drawTerm"])
         numbers = [int(n) for n in data["openShowOrder"]]
 
-        # Parse draw_date from drawTerm: 115009534
-        # 115 = 民國年, 009 = day of year
-        roc_year = int(draw_term[:3])
-        day_of_year = int(draw_term[3:6])
-        western_year = roc_year + 1911
-        draw_date_val = date(western_year, 1, 1) + timedelta(days=day_of_year - 1)
+        position = int(draw_term) - first_term_of_day
+        base_time = time(
+            settings.BINGO_FIRST_DRAW_HOUR,
+            settings.BINGO_FIRST_DRAW_MINUTE,
+        )
+        draw_datetime = datetime.combine(query_date, base_time) + timedelta(
+            minutes=5 * position
+        )
 
         return {
             "draw_term": draw_term,
-            "draw_date": draw_date_val,
-            "draw_datetime": datetime.combine(draw_date_val, datetime.now().time()),
+            "draw_date": query_date,
+            "draw_datetime": draw_datetime,
             "numbers_sorted": ",".join(data["bigShowOrder"]),
             "numbers_sequence": ",".join(data["openShowOrder"]),
             "super_number": data["bullEyeTop"],
@@ -203,11 +227,16 @@ class BingoCrawler:
 
     # ─── Save ─────────────────────────────────────────────
 
-    def parse_and_save(self, draw_data: Dict) -> str:
+    def parse_and_save(
+        self,
+        draw_data: Dict,
+        query_date: date,
+        first_term_of_day: int,
+    ) -> str:
         if not self._validate(draw_data):
             return "failed"
 
-        parsed = self._parse_draw_data(draw_data)
+        parsed = self._parse_draw_data(draw_data, query_date, first_term_of_day)
 
         try:
             existing = (

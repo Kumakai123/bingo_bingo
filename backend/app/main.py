@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import engine, SessionLocal, Base
-from app.api import draws, predictions, status
+from app.api import draws, predictions, status, simulation
 from app import models  # noqa: F401  # Ensure all ORM models are registered before create_all
 from scheduler.tasks import setup_scheduler
 
@@ -45,6 +45,7 @@ app.add_middleware(
 app.include_router(draws.router, prefix="/api/draws", tags=["開獎資料"])
 app.include_router(predictions.router, prefix="/api/predictions", tags=["預測"])
 app.include_router(status.router, prefix="/api/status", tags=["狀態"])
+app.include_router(simulation.router, prefix="/api/simulation", tags=["模擬投注"])
 
 
 @app.get("/")
