@@ -45,7 +45,7 @@ pip install gunicorn
 deactivate
 
 if [ ! -f ".env" ]; then
-  cp "$DEPLOY_DIR/.env.backend.example" .env
+  cp "$DEPLOY_DIR/env.backend.example" .env
   sed -i "s|yourdomain\.com|$DOMAIN|g" .env
   echo "  → Created backend/.env with CORS origins for $DOMAIN"
 fi
