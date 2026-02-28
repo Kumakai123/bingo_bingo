@@ -1,0 +1,22 @@
+[Unit]
+Description=Bingo Backend (Gunicorn + Uvicorn)
+After=network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/bingo_bingo/backend
+ExecStart=/home/ubuntu/bingo_bingo/backend/venv/bin/gunicorn app.main:app \
+    --workers 2 \
+    --worker-class uvicorn.workers.UvicornWorker \
+    --bind 127.0.0.1:8000 \
+    --timeout 120 \
+    --access-logfile - \
+    --error-logfile -
+Restart=always
+RestartSec=5
+Environment=PATH=/home/ubuntu/bingo_bingo/backend/venv/bin:/usr/bin
+EnvironmentFile=/home/ubuntu/bingo_bingo/backend/.env
+
+[Install]
+WantedBy=multi-user.target

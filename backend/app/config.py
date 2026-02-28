@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic_settings import BaseSettings
 
 
@@ -8,6 +10,7 @@ class Settings(BaseSettings):
     ENV: str = "development"
     BINGO_FIRST_DRAW_HOUR: int = 7
     BINGO_FIRST_DRAW_MINUTE: int = 5
+    ALLOWED_ORIGINS: List[str] = []
 
     model_config = {"env_file": ".env"}
 
