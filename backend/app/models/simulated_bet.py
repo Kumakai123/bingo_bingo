@@ -8,6 +8,7 @@ class SimulatedBet(Base):
     __tablename__ = "simulated_bets"
 
     id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(String(36), nullable=False, index=True)
     bet_type = Column(String(20), nullable=False)  # basic / super / high_low / odd_even
     star_level = Column(Integer, nullable=True)  # 1-10, basic only
     selected_numbers = Column(Text, nullable=True)  # "07,11,33" for basic/super

@@ -87,23 +87,28 @@ def settle_bet(bet: SimulatedBet, draw: DrawResult) -> SimulatedBet:
     return bet
 
 
-def auto_settle_all(db: Session, draw: DrawResult) -> int:
+def auto_settle_all(db: Session, draw: DrawResult, *, session_id: str | None = None) -> int:
     """
-    結算所有目標期號 == 此期的 pending 投注。
-    兼容舊資料：target_draw_term 為 NULL 時 fallback 用 created_at 比對。
+    結算 pending 投注。
+    - session_id=None（排程呼叫）：結算所有 session 的 pending 投注
+    - session_id=xxx（手動兌獎）：只結算該 session 的 pending 投注
     """
     from sqlalchemy import or_
 
+    filters = [
+        SimulatedBet.status == "pending",
+        or_(
+            SimulatedBet.target_draw_term == draw.draw_term,
+            (SimulatedBet.target_draw_term.is_(None))
+            & (SimulatedBet.created_at < draw.draw_datetime),
+        ),
+    ]
+    if session_id is not None:
+        filters.append(SimulatedBet.session_id == session_id)
+
     pending_bets: List[SimulatedBet] = (
         db.query(SimulatedBet)
-        .filter(
-            SimulatedBet.status == "pending",
-            or_(
-                SimulatedBet.target_draw_term == draw.draw_term,
-                (SimulatedBet.target_draw_term.is_(None))
-                & (SimulatedBet.created_at < draw.draw_datetime),
-            ),
-        )
+        .filter(*filters)
         .all()
     )
 

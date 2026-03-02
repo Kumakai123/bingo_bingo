@@ -54,6 +54,7 @@ htmlcov/
 Thumbs.db
 
 # ─── 分析攻略 / 私人筆記 ─────────────────────────
+spec.md
 bingo_analysis_prompt.md
 bingo_anylize_approach*.md
 

@@ -13,6 +13,7 @@ echo "── Updating backend..."
 cd "$APP_DIR/backend"
 source venv/bin/activate
 pip install -r requirements.txt --quiet
+python -m scripts.migrate_add_session_id
 deactivate
 sudo systemctl restart bingo-backend
 

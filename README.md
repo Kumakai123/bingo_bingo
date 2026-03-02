@@ -1,26 +1,50 @@
 # BINGO BINGO 分析工具
 
-這是一個針對台灣彩券 BINGO BINGO 的分析工具，提供：
+台灣彩券 BINGO BINGO 號碼分析 & 模擬投注系統。
 
-- 最新開獎資料抓取與儲存
-- 基本玩法、超級號碼、猜大小、猜單雙分析
-- 儀表板快速瀏覽與歷史紀錄
-- 分析期數切換（含自訂期數）
-- 手動刷新與自動輪詢更新
+## 功能
+
+| 模組 | 說明 |
+|------|------|
+| 儀表板 | 最新預測總覽、近期開獎紀錄 |
+| 基本玩法分析 | 1–10 星號碼頻率、命中率分析 |
+| 超級號碼 | 超級獎號趨勢與推薦 |
+| 猜大小 / 猜單雙 | 歷史比例、連續紀錄分析 |
+| 進階分析 | 共現分析、尾數統計、區間分布、冷熱循環、連號偵測 |
+| 智慧選號 | 綜合多維度推薦號碼組合 |
+| 模擬投注 | 下注 → 自動兌獎 → 統計盈虧 |
+
+### Session 隔離（模擬投注）
+
+每個瀏覽器自動產生 UUID 存在 `localStorage`（key: `bingo_session_id`），透過 `X-Session-Id` header 隔離投注資料。**不需登入**，不同瀏覽器 / 無痕模式各自獨立。
 
 ## 技術架構
 
-- Backend: FastAPI + SQLAlchemy + APScheduler
-- Frontend: Vue 3 + Vite + Pinia + Chart.js
-- Database: SQLite（預設 `backend/bingo.db`）
+- **Backend**: FastAPI + SQLAlchemy + APScheduler + Gunicorn
+- **Frontend**: Vue 3 + Vite + Pinia + Chart.js
+- **Database**: SQLite（`backend/bingo.db`）
+- **Deploy**: Nginx + systemd + Let's Encrypt
 
 ## 專案結構
 
 ```text
 bingo_bingo/
-├─ backend/   # API, crawler, scheduler, tests
-├─ frontend/  # Vue 前端頁面與元件
-└─ spec.md    # 規格文件
+├─ backend/
+│  ├─ app/           # FastAPI 主程式、API routes、models
+│  ├─ analysis/      # 分析引擎、兌獎引擎、賠率表
+│  ├─ crawler/       # 台彩開獎資料爬蟲
+│  ├─ scheduler/     # APScheduler 排程
+│  ├─ scripts/       # 資料庫遷移腳本
+│  └─ tests/         # pytest 測試
+├─ frontend/
+│  ├─ src/
+│  │  ├─ views/      # 頁面元件
+│  │  ├─ components/ # 共用元件（BetWidget、FrequencyChart 等）
+│  │  ├─ stores/     # Pinia stores
+│  │  └─ services/   # API 呼叫層（含 session interceptor）
+│  └─ dist/          # 建置輸出
+├─ deploy/           # 部署腳本與設定檔
+└─ spec.md           # 規格文件
 ```
 
 ## 環境需求
@@ -29,7 +53,7 @@ bingo_bingo/
 - Node.js 18+（建議 LTS）
 - npm 9+
 
-## 快速開始（Windows PowerShell）
+## 快速開始（本地開發）
 
 ### 1) 啟動後端
 
@@ -55,77 +79,75 @@ ENV=development
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-> 建議使用 `python -m uvicorn`，可避免 PowerShell 找不到 `uvicorn` 指令。
-
 ### 2) 啟動前端
 
 ```powershell
-cd ..\frontend
+cd frontend
 npm install
 ```
 
-可選：建立 `frontend/.env`（指定後端位址）
+可選：建立 `frontend/.env`
 
 ```env
 VITE_API_BASE_URL=http://127.0.0.1:8000
 ```
 
-啟動前端：
+啟動：
 
 ```powershell
 npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
 ```
 
-開啟瀏覽器：`http://127.0.0.1:5173`
+開啟瀏覽器：`http://127.0.0.1:5173/bingo_bingo/`
 
-## 使用方式
+## API 總覽
 
-1. 進入儀表板查看最新預測與最近開獎紀錄。
-2. 使用「分析期數」按鈕切換 5 / 10 / 20 / 30 / 50 / 100 或自訂期數。
-3. 點右上角「手動刷新」可立即觸發後端抓取與分析。
-4. 系統也會定時輪詢更新（前端）與排程抓取（後端，預設每 6 分鐘）。
-
-## 常用 API
-
-- 健康檢查: `GET /health`
-- 最新開獎: `GET /api/draws/latest?limit=20`
-- 單一期號: `GET /api/draws/{draw_term}`
-- 全部分析: `GET /api/predictions/all?period_range=30`
-- 手動刷新: `POST /api/status/refresh`
-- 最後更新時間: `GET /api/status/last-updated`
+| 端點 | 說明 |
+|------|------|
+| `GET /health` | 健康檢查 |
+| `GET /api/draws/latest?limit=20` | 最近開獎紀錄 |
+| `GET /api/draws/{term}` | 單一期號 |
+| `GET /api/predictions/all?period_range=30` | 全部分析 |
+| `POST /api/status/refresh` | 手動抓取刷新 |
+| `GET /api/status/last-updated` | 最後更新時間 |
+| `POST /api/simulation/bet` | 下注（需 `X-Session-Id`） |
+| `GET /api/simulation/bets` | 投注紀錄（需 `X-Session-Id`） |
+| `GET /api/simulation/stats` | 投注統計（需 `X-Session-Id`） |
+| `POST /api/simulation/settle` | 手動兌獎（需 `X-Session-Id`） |
+| `DELETE /api/simulation/bet/{id}` | 取消投注（需 `X-Session-Id`） |
+| `GET /api/simulation/next-draw` | 下一期資訊 |
 
 Swagger 文件：`http://127.0.0.1:8000/docs`
 
-## 驗證與測試
-
-後端測試：
+## 測試
 
 ```powershell
+# 後端
 cd backend
 .\venv\Scripts\pytest -q
-```
 
-前端建置檢查：
-
-```powershell
+# 前端建置檢查
 cd frontend
 npm run build
 ```
 
+## 部署
+
+👉 詳見 [deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md)
+
 ## 常見問題
 
-### 1) 前端顯示「暫無資料」
+### 前端顯示「暫無資料」
 
-- 先確認後端是否啟動：`http://127.0.0.1:8000/health`
-- 觸發手動刷新：`POST /api/status/refresh`
-- 再檢查：`GET /api/draws/latest?limit=5`
+1. 確認後端啟動：`GET /health`
+2. 觸發手動刷新：`POST /api/status/refresh`
+3. 檢查資料：`GET /api/draws/latest?limit=5`
 
-### 2) 抓取台彩 API 失敗（TLS 憑證嚴格檢查）
+### TLS 憑證錯誤（抓取台彩 API）
 
-可在 `backend/.env` 設定：
+在 `backend/.env` 設定：
 
 ```env
 CRAWLER_RELAX_TLS_STRICT=true
 ```
 
-設定後重啟後端再測試。
