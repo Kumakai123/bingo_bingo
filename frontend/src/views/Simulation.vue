@@ -47,7 +47,8 @@
 
       <div v-if="store.loading" class="loading-overlay"><div class="spinner"></div>載入中...</div>
 
-      <table v-else-if="store.bets.length" class="data-table">
+      <div v-else-if="store.bets.length" class="table-scroll">
+      <table class="data-table">
         <thead>
           <tr>
             <th>玩法</th>
@@ -97,6 +98,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
 
       <p v-else class="empty-hint">暫無投注紀錄，點擊右下角按鈕開始下注</p>
     </div>
