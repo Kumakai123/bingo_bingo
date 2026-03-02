@@ -39,6 +39,7 @@
             </div>
             <div class="w-row">
               <span class="w-label">選號 ({{ selectedNumbers.length }}/{{ starLevel }})</span>
+              <button class="w-random-btn" @click="randomPick(starLevel)">🎲 隨機出號</button>
             </div>
             <div class="w-number-grid">
               <button
@@ -55,6 +56,7 @@
           <template v-if="betType === 'super'">
             <div class="w-row">
               <span class="w-label">選 1 個超級號碼</span>
+              <button class="w-random-btn" @click="randomPick(1)">🎲 隨機</button>
             </div>
             <div class="w-number-grid">
               <button
@@ -194,6 +196,16 @@ function toggleNumber(n) {
   } else {
     selectedNumbers.value.push(n);
   }
+}
+
+function randomPick(count) {
+  const pool = Array.from({ length: 80 }, (_, i) => pad(i + 1));
+  // Fisher-Yates shuffle, take first `count`
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  selectedNumbers.value = pool.slice(0, count).sort();
 }
 
 async function fetchNextDraw() {
@@ -610,6 +622,25 @@ onMounted(() => {
 
 .w-error { color: var(--accent); font-size: 0.78rem; margin-top: 6px; text-align: center; }
 .w-success { color: var(--secondary); font-size: 0.78rem; margin-top: 6px; text-align: center; }
+
+.w-random-btn {
+  margin-left: auto;
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--purple);
+  background: rgba(167, 139, 250, 0.1);
+  color: var(--purple);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--font-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.w-random-btn:hover {
+  background: rgba(167, 139, 250, 0.2);
+  border-color: #c4b5fd;
+}
 
 /* Panel transition */
 .panel-enter-active { transition: all 0.25s ease-out; }
