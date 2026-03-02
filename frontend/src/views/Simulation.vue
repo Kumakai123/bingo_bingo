@@ -144,11 +144,22 @@ function profitClass(bet) {
 
 function formatBetTime(iso) {
   if (!iso) return '—';
-  const d = new Date(iso);
-  const mo = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  const h = String(d.getHours()).padStart(2, '0');
-  const mi = String(d.getMinutes()).padStart(2, '0');
+  const hasTz = iso.endsWith('Z') || /[-+]\d{2}:?\d{2}$/.test(iso);
+  const isoUtc = hasTz ? iso : iso + 'Z';
+  const d = new Date(isoUtc);
+  const formatter = new Intl.DateTimeFormat('zh-TW', {
+    timeZone: 'Asia/Taipei',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  const parts = formatter.formatToParts(d);
+  const mo = parts.find((p) => p.type === 'month').value;
+  const day = parts.find((p) => p.type === 'day').value;
+  const h = parts.find((p) => p.type === 'hour').value;
+  const mi = parts.find((p) => p.type === 'minute').value;
   return `${mo}/${day} ${h}:${mi}`;
 }
 

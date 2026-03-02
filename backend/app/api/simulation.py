@@ -1,6 +1,6 @@
 from datetime import datetime, time, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from pydantic import BaseModel, field_validator
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -13,6 +13,13 @@ from app.models.simulated_bet import SimulatedBet
 from analysis.bet_settler import auto_settle_all
 
 router = APIRouter()
+
+
+def get_session_id(x_session_id: str = Header(None)) -> str:
+    """Extract browser session ID from X-Session-Id header."""
+    if not x_session_id:
+        raise HTTPException(400, "缺少 X-Session-Id header")
+    return x_session_id
 
 VALID_BET_TYPES = {"basic", "super", "high_low", "odd_even"}
 VALID_OPTIONS = {"大", "小", "單", "雙"}
@@ -92,7 +99,7 @@ def get_next_draw(db: Session = Depends(get_db)):
 
 
 @router.post("/bet")
-def place_bet(req: PlaceBetRequest, db: Session = Depends(get_db)):
+def place_bet(req: PlaceBetRequest, db: Session = Depends(get_db), session_id: str = Depends(get_session_id)):
     """下注（支援多期）"""
     if req.bet_type == "basic":
         if req.star_level is None or not 1 <= req.star_level <= 10:
@@ -119,6 +126,7 @@ def place_bet(req: PlaceBetRequest, db: Session = Depends(get_db)):
     for i in range(req.bet_periods):
         target_term = str(latest_term + 1 + i)
         bet = SimulatedBet(
+            session_id=session_id,
             bet_type=req.bet_type,
             star_level=req.star_level,
             selected_numbers=numbers_str,
@@ -144,9 +152,12 @@ def get_bets(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    session_id: str = Depends(get_session_id),
 ):
     """取得投注歷史"""
-    query = db.query(SimulatedBet).order_by(SimulatedBet.id.desc())
+    query = db.query(SimulatedBet).filter(
+        SimulatedBet.session_id == session_id
+    ).order_by(SimulatedBet.id.desc())
     if status:
         query = query.filter(SimulatedBet.status == status)
     total = query.count()
@@ -158,15 +169,19 @@ def get_bets(
 
 
 @router.get("/stats")
-def get_stats(db: Session = Depends(get_db)):
+def get_stats(db: Session = Depends(get_db), session_id: str = Depends(get_session_id)):
     """取得投注統計"""
-    rows = db.query(SimulatedBet).filter(SimulatedBet.status != "pending").all()
+    rows = db.query(SimulatedBet).filter(
+        SimulatedBet.session_id == session_id,
+        SimulatedBet.status != "pending",
+    ).all()
     total_cost = sum(r.bet_amount * r.multiplier for r in rows)
     total_prize = sum(r.prize_amount for r in rows)
     total_bets = len(rows)
     wins = sum(1 for r in rows if r.status == "won")
     pending = db.query(func.count(SimulatedBet.id)).filter(
-        SimulatedBet.status == "pending"
+        SimulatedBet.session_id == session_id,
+        SimulatedBet.status == "pending",
     ).scalar()
 
     return {
@@ -182,8 +197,8 @@ def get_stats(db: Session = Depends(get_db)):
 
 
 @router.post("/settle")
-def manual_settle(db: Session = Depends(get_db)):
-    """手動用最新一期開獎結算所有 pending 投注"""
+def manual_settle(db: Session = Depends(get_db), session_id: str = Depends(get_session_id)):
+    """手動用最新一期開獎結算當前 session 的 pending 投注"""
     latest_draw = (
         db.query(DrawResult)
         .order_by(DrawResult.draw_term.desc())
@@ -192,14 +207,17 @@ def manual_settle(db: Session = Depends(get_db)):
     if not latest_draw:
         raise HTTPException(404, "尚無開獎資料")
 
-    settled = auto_settle_all(db, latest_draw)
+    settled = auto_settle_all(db, latest_draw, session_id=session_id)
     return {"settled_count": settled, "draw_term": latest_draw.draw_term}
 
 
 @router.delete("/bet/{bet_id}")
-def cancel_bet(bet_id: int, db: Session = Depends(get_db)):
+def cancel_bet(bet_id: int, db: Session = Depends(get_db), session_id: str = Depends(get_session_id)):
     """取消 pending 投注"""
-    bet = db.query(SimulatedBet).filter(SimulatedBet.id == bet_id).first()
+    bet = db.query(SimulatedBet).filter(
+        SimulatedBet.id == bet_id,
+        SimulatedBet.session_id == session_id,
+    ).first()
     if not bet:
         raise HTTPException(404, "投注不存在")
     if bet.status != "pending":
@@ -236,6 +254,6 @@ def _bet_to_dict(bet: SimulatedBet) -> dict:
         "matched_numbers": bet.matched_numbers.split(",") if bet.matched_numbers else None,
         "prize_amount": bet.prize_amount,
         "net_profit": bet.net_profit,
-        "created_at": bet.created_at.isoformat() if bet.created_at else None,
-        "settled_at": bet.settled_at.isoformat() if bet.settled_at else None,
+        "created_at": (bet.created_at.isoformat() + "Z") if bet.created_at else None,
+        "settled_at": (bet.settled_at.isoformat() + "Z") if bet.settled_at else None,
     }
